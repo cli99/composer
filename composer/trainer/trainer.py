@@ -57,6 +57,7 @@ from composer.utils import (ExportFormat, MissingConditionalImportError, ObjectS
                             maybe_create_object_store_from_uri, maybe_create_remote_uploader_downloader_from_uri,
                             model_eval_mode, parse_uri, reproducibility, using_torch_2)
 from composer.utils.misc import is_model_deepspeed
+import gc
 
 if is_tpu_installed():
     import torch_xla.core.xla_model as xm
@@ -2338,6 +2339,9 @@ class Trainer:
                         optimizer.zero_grad(set_to_none=True)
                     except TypeError:
                         optimizer.zero_grad()
+
+            gc.collect()
+            torch.cuda.empty_cache()
 
             # Tracker for gradient accumulation
             current_batch_size = sum([self._train_data_spec.get_num_samples_in_batch(batch) for batch in microbatches])
