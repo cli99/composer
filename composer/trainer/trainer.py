@@ -3132,6 +3132,7 @@ class Trainer:
         We default to using closures unless AMP is enabled, in which case we only allow closures when using optimizers
         with the _step_supports_amp_closure flag.
         """
+        return False
         if self.state.deepspeed_enabled:
             return False
 
