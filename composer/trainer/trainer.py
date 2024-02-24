@@ -2129,6 +2129,17 @@ class Trainer:
 
                 self.state.batch = self.state.device.batch_to_device(self.state.batch)
                 self.state.batch = self._train_data_spec.device_transforms(self.state.batch)
+
+                max_seq_len = self.state.model.config.max_seq_len
+                spg_ws = self.state.model.config.attn_config.get('seq_parallel_world_size',
+                                                    1)
+                for k,v in self.state.batch.items():
+                    # print(f'{k=}, {v.shape=}')
+                    b, s = v.shape
+                    assert b == 1, "Batch size must be 1"
+                    n_rep = max_seq_len // s // spg_ws
+                    self.state.batch[k] = v.repeat(1, n_rep)
+
                 rank_num_samples = self._train_data_spec.get_num_samples_in_batch(self.state.batch)
                 rank_num_tokens = self._train_data_spec.get_num_tokens_in_batch(self.state.batch)
 
